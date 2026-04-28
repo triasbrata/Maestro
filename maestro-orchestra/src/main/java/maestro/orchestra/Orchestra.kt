@@ -613,7 +613,7 @@ class Orchestra(
         val comparisonState = comparison.compareImages()
 
         when (comparisonState.imageComparisonState) {
-            ImageComparisonState.MATCH -> return true
+            ImageComparisonState.MATCH -> return false // Screenshots are non-interactive
             ImageComparisonState.SIZE_MISMATCH -> throw MaestroException.AssertionFailure(
                 message = "Screenshot size mismatch: ${command.description()} - expected ${expectedImage.width}x${expectedImage.height}, actual ${actualImage.width}x${actualImage.height}. Screenshots must have the same dimensions to compare.",
                 hierarchyRoot = maestro.viewHierarchy().root,
@@ -636,7 +636,9 @@ class Orchestra(
     private fun evalScriptCommand(command: EvalScriptCommand): Boolean {
         command.scriptString.evaluateScripts(jsEngine)
 
-        // We do not actually know if there were any mutations, but we assume there were
+        // Scripts can trigger HTTP requests that cause the app to receive a state change
+        // (e.g. via WebSocket or push notification), mutating the hierarchy. We conservatively
+        // treat these as mutating.
         return true
     }
 
@@ -649,7 +651,9 @@ class Orchestra(
                 runInSubScope = true,
             )
 
-            // We do not actually know if there were any mutations, but we assume there were
+            // Scripts can trigger HTTP requests that cause the app to receive a state change
+            // (e.g. via WebSocket or push notification), mutating the hierarchy. We conservatively
+            // treat these as mutating.
             true
         } else {
             throw CommandSkipped
@@ -1171,13 +1175,16 @@ class Orchestra(
             throw MaestroException.UnableToSetPermissions("Unable to set permissions for app ${command.appId}: ${e.message}", e)
         }
 
-        return true
+        // Setting permissions occurs behind the scenes and won't alter screen state.
+        // Android and iOS provide no mechanism for subscribing to permissions events.
+        return false
     }
 
     private suspend fun clearKeychainCommand(): Boolean {
         maestro.clearKeychain()
 
-        return true
+        // No UI effect
+        return false
     }
 
     private suspend fun inputTextCommand(command: InputTextCommand): Boolean {
@@ -1593,14 +1600,16 @@ class Orchestra(
 
         jsEngine.setCopiedText(copiedText)
 
-        return true
+        // Hierarchy read and internal variable setting - no UI effect
+        return false
     }
 
     private fun setClipboardCommand(command: SetClipboardCommand): Boolean {
         copiedText = command.text
         jsEngine.setCopiedText(copiedText)
 
-        return true
+        // Internal variable setting - no UI effect
+        return false
     }
 
     private fun resolveText(attributes: MutableMap<String, String>): String? {
