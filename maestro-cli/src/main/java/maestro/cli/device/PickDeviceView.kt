@@ -33,6 +33,7 @@ object PickDeviceView {
             Platform.ANDROID -> DeviceSpec.Android.DEFAULT
             Platform.IOS -> DeviceSpec.Ios.DEFAULT
             Platform.WEB -> DeviceSpec.Web.DEFAULT
+            Platform.MACOS -> DeviceSpec.Macos.DEFAULT
         }
     }
 

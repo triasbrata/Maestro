@@ -131,6 +131,18 @@ object DeviceService {
                     deviceSpec = device.deviceSpec,
                 )
             }
+
+            Platform.MACOS -> {
+                PrintUtils.message("Launching macOS...")
+
+                return Device.Connected(
+                    instanceId = "macos",
+                    description = device.description,
+                    platform = device.platform,
+                    deviceType = device.deviceType,
+                    deviceSpec = device.deviceSpec,
+                )
+            }
         }
     }
 
@@ -154,6 +166,7 @@ object DeviceService {
      fun listDevices(includeWeb: Boolean, host: String? = null, port: Int? = null): List<Device> {
         return listAndroidDevices(host, port) +
                 listIOSDevices() +
+                listMacOSDevices() +
                 if (includeWeb) {
                     listWebDevices()
                 } else {
@@ -176,6 +189,18 @@ object DeviceService {
                 platform = Platform.WEB,
                 deviceType = Device.DeviceType.BROWSER,
                 deviceSpec = DeviceSpec.Web.DEFAULT
+            )
+        )
+    }
+
+    fun listMacOSDevices(): List<Device> {
+        return listOf(
+            Device.Connected(
+                instanceId = "macos",
+                description = "This Mac",
+                platform = Platform.MACOS,
+                deviceType = Device.DeviceType.SIMULATOR,
+                deviceSpec = DeviceSpec.Macos.DEFAULT
             )
         )
     }

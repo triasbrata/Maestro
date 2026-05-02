@@ -23,6 +23,13 @@ object DeviceCreateUtil {
             deviceType = Device.DeviceType.BROWSER,
             deviceSpec = deviceSpec,
         )
+        is DeviceSpec.Macos   -> Device.AvailableForLaunch(
+            platform = Platform.MACOS,
+            description = "macOS Desktop",
+            modelId = deviceSpec.model,
+            deviceType = Device.DeviceType.SIMULATOR,
+            deviceSpec = deviceSpec,
+        )
     }
 
     fun getOrCreateIosDevice(

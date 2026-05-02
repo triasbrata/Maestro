@@ -25,6 +25,9 @@ import ios.LocalIOSDevice
 import ios.devicectl.DeviceControlIOSDevice
 import device.SimctlIOSDevice
 import ios.xctest.XCTestIOSDevice
+import macos.MacOSDriverClient
+import macos.device.LocalMacOSDevice
+import macos.installer.LocalMacOSSidecarInstaller
 import maestro.Maestro
 import maestro.device.Device
 import maestro.cli.device.PickDeviceInteractor
@@ -36,6 +39,7 @@ import maestro.utils.CliInsights
 import maestro.cli.util.ScreenReporter
 import maestro.drivers.AndroidDriver
 import maestro.drivers.IOSDriver
+import maestro.drivers.MacOSDriver
 import maestro.orchestra.WorkspaceConfig.PlatformConfiguration
 import maestro.orchestra.workspace.WorkspaceExecutionPlanner
 import maestro.utils.TempFileHandler
@@ -149,6 +153,13 @@ object MaestroSessionManager {
             )
         }
 
+        if (platform == Platform.MACOS || deviceId == "macos") {
+            return SelectedDevice(
+                platform = Platform.MACOS,
+                deviceType = Device.DeviceType.SIMULATOR
+            )
+        }
+
         if (host == null) {
             val device = PickDeviceInteractor.pickDevice(deviceId, driverHostPort, platform, deviceIndex)
 
@@ -221,6 +232,8 @@ object MaestroSessionManager {
                     )
 
                     Platform.WEB -> pickWebDevice(isStudio, isHeadless, screenSize)
+
+                    Platform.MACOS -> createMacOS(selectedDevice.device)
                 },
                 device = selectedDevice.device,
             )
@@ -250,6 +263,11 @@ object MaestroSessionManager {
 
             selectedDevice.platform == Platform.WEB -> MaestroSession(
                 maestro = pickWebDevice(isStudio, isHeadless, screenSize),
+                device = null
+            )
+
+            selectedDevice.platform == Platform.MACOS -> MaestroSession(
+                maestro = createMacOS(),
                 device = null
             )
 
@@ -443,6 +461,16 @@ object MaestroSessionManager {
             driver = iosDriver,
             openDriver = openDriver || xcTestDevice.isShutdown(),
         )
+    }
+
+    private fun createMacOS(device: Device? = null): Maestro {
+        val installer = LocalMacOSSidecarInstaller()
+        val sidecarClient = installer.start()
+        val driverClient = MacOSDriverClient(installer, sidecarClient)
+        val macosDevice = LocalMacOSDevice(null, driverClient)
+        val driver = MacOSDriver(macosDevice)
+        driver.open()
+        return Maestro(driver)
     }
 
     private fun pickWebDevice(isStudio: Boolean, isHeadless: Boolean, screenSize: String?): Maestro {

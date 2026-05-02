@@ -126,6 +126,7 @@ dependencies {
     protobuf(project(":maestro-proto"))
     implementation(project(":maestro-utils"))
     implementation(project(":maestro-ios-driver"))
+    implementation(project(":maestro-macos-driver"))
 
     api(libs.graaljs)
     api(libs.graaljsEngine)

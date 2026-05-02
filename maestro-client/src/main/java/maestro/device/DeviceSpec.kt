@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo
 import maestro.device.locale.AndroidLocale
 import maestro.device.locale.DeviceLocale
 import maestro.device.locale.IosLocale
+import maestro.device.locale.MacOSLocale
 import maestro.device.locale.WebLocale
 
 enum class CPU_ARCHITECTURE(val value: String) {
@@ -35,6 +36,7 @@ enum class CPU_ARCHITECTURE(val value: String) {
   JsonSubTypes.Type(DeviceSpec.Android::class, name = "ANDROID"),
   JsonSubTypes.Type(DeviceSpec.Ios::class, name = "IOS"),
   JsonSubTypes.Type(DeviceSpec.Web::class, name = "WEB"),
+  JsonSubTypes.Type(DeviceSpec.Macos::class, name = "MACOS"),
 )
 sealed class DeviceSpec {
     abstract val platform: Platform
@@ -101,6 +103,25 @@ sealed class DeviceSpec {
 
         companion object {
             val DEFAULT: Web = Web(model = "chromium", os = "default")
+        }
+    }
+
+    data class Macos(
+        override val model: String,
+        override val os: String,
+        override val locale: MacOSLocale = MacOSLocale.EN_US,
+    ) : DeviceSpec() {
+        init {
+            require(model.isNotBlank()) { "DeviceSpec.Macos: model cannot be blank" }
+            require(os.isNotBlank()) { "DeviceSpec.Macos: os cannot be blank" }
+        }
+
+        override val platform = Platform.MACOS
+        override val osVersion: Int get() = os.removePrefix("macOS-").toIntOrNull() ?: 0
+        override val deviceName: String get() = "Maestro_MACOS_${model}"
+
+        companion object {
+            val DEFAULT: Macos = Macos(model = "macOS-15", os = "macOS-15")
         }
     }
 }

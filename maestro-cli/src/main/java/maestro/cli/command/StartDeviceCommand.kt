@@ -12,6 +12,7 @@ import maestro.device.DeviceSpec
 import maestro.device.Platform
 import maestro.device.locale.AndroidLocale
 import maestro.device.locale.IosLocale
+import maestro.device.locale.MacOSLocale
 import maestro.device.locale.WebLocale
 import picocli.CommandLine
 import java.util.concurrent.Callable
@@ -118,6 +119,14 @@ class StartDeviceCommand : Callable<Int> {
                     model = deviceModel ?: default.model,
                     os = deviceOs ?: osVersion ?: default.os,
                     locale = deviceLocale?.let { WebLocale.fromString(it) } ?: default.locale,
+                )
+            }
+            Platform.MACOS -> {
+                val default = DeviceSpec.Macos.DEFAULT
+                DeviceSpec.Macos(
+                    model = deviceModel ?: default.model,
+                    os = deviceOs ?: osVersion ?: default.os,
+                    locale = deviceLocale?.let { MacOSLocale.fromString(it) } ?: default.locale,
                 )
             }
         }
